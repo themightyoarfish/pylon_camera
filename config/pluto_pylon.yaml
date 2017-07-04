@@ -44,7 +44,7 @@ frame_rate: 20.0
 ##########################################################################
 
 #  The exposure time in microseconds to be set after opening the camera.
-#exposure: 50000.0
+exposure: 50000.0
 
 #  The target gain in percent of the maximal value the camera supports
 #  For USB-Cameras, the gain is in dB, for GigE-Cameras it is given in so
@@ -88,7 +88,7 @@ frame_rate: 20.0
 #  The gain_auto flag indicates, that the desired brightness will be
 #  reached by adapting the gain.
 exposure_auto: false
-gain_auto: true
+gain_auto: false
 
 ##########################################################################
 

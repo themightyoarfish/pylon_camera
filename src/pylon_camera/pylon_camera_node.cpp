@@ -33,6 +33,7 @@
 #include <cmath>
 #include <vector>
 #include "boost/multi_array.hpp"
+#include <opencv2/core.hpp>
 
 namespace pylon_camera
 {
@@ -64,7 +65,7 @@ PylonCameraNode::PylonCameraNode()
       set_user_output_srvs_(),
       pylon_camera_(nullptr),
       it_(new image_transport::ImageTransport(nh_)),
-      img_raw_pub_(it_->advertiseCamera("image_raw", 1)),
+      img_raw_pub_(it_->advertiseCamera("image_raw", 100)),
       img_rect_pub_(nullptr),
       grab_imgs_raw_as_(
               nh_,
@@ -378,77 +379,95 @@ void PylonCameraNode::setupRectification()
 
 void PylonCameraNode::spin()
 {
-    if ( camera_info_manager_->isCalibrated() )
-    {
-        ROS_INFO_ONCE("Camera is calibrated");
-    }
-    else
-    {
-        ROS_INFO_ONCE("Camera not calibrated");
-    }
+    /* if ( camera_info_manager_->isCalibrated() ) */
+    /* { */
+    /*     ROS_INFO_ONCE("Camera is calibrated"); */
+    /* } */
+    /* else */
+    /* { */
+    /*     ROS_INFO_ONCE("Camera not calibrated"); */
+    /* } */
 
     // images were published if subscribers are available or if someone calls
     // the GrabImages Action
-    if ( !isSleeping() && ( img_raw_pub_.getNumSubscribers() > 0 ||
-                            getNumSubscribersRect() ) )
-    {
-        if ( !grabImage() )
-        {
-            return;
-        }
+    /* if ( !isSleeping() && ( img_raw_pub_.getNumSubscribers() > 0 || */
+    /*                         getNumSubscribersRect() ) ) */
+    /* { */
+    /*     if ( !grabImage() ) */
+    /*     { */
+    /*         return; */
+    /*     } */
 
-        if ( img_raw_pub_.getNumSubscribers() > 0 )
-        {
+    /*     if ( img_raw_pub_.getNumSubscribers() > 0 ) */
+    /*     { */
             // get actual cam_info-object in every frame, because it might have
             // changed due to a 'set_camera_info'-service call
-            sensor_msgs::CameraInfoPtr cam_info(
-                        new sensor_msgs::CameraInfo(
-                                        camera_info_manager_->getCameraInfo()));
-            cam_info->header.stamp = img_raw_msg_.header.stamp;
+            /* sensor_msgs::CameraInfoPtr cam_info( */
+            /*             new sensor_msgs::CameraInfo( */
+            /*                             camera_info_manager_->getCameraInfo())); */
+            /* cam_info->header.stamp = img_raw_msg_.header.stamp; */
 
             // Publish via image_transport
-            img_raw_pub_.publish(img_raw_msg_, *cam_info);
-        }
+            grabImage();
+            img_raw_pub_.publish(img_raw_msg_, sensor_msgs::CameraInfo());
+        /* } */
 
-        if ( getNumSubscribersRect() > 0 )
-        {
-            img_rect_pub_->publish(*cv_bridge_img_rect_);
-        }
-    }
+        /* if ( getNumSubscribersRect() > 0 ) */
+        /* { */
+        /*     img_rect_pub_->publish(*cv_bridge_img_rect_); */
+        /* } */
+    /* } */
 }
 
 bool PylonCameraNode::grabImage()
 {
-    boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
-    if ( !pylon_camera_->grab(img_raw_msg_.data) )
-    {
-        if ( pylon_camera_->isCamRemoved() )
-        {
-            ROS_ERROR("Pylon camera has been removed!");
-            delete pylon_camera_;
-            pylon_camera_ = nullptr;
-            ros::Duration(0.5).sleep();  // sleep for half a second
-            init();
-        }
-        else
-        {
-            ROS_WARN("Pylon camera returned invalid image! Skipping");
-        }
-        return false;
-    }
+    /* boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_); */
+    /* if ( !pylon_camera_->grab(img_raw_msg_.data) ) */
+    /* { */
+    /*     if ( pylon_camera_->isCamRemoved() ) */
+    /*     { */
+    /*         ROS_ERROR("Pylon camera has been removed!"); */
+    /*         delete pylon_camera_; */
+    /*         pylon_camera_ = nullptr; */
+    /*         ros::Duration(0.5).sleep();  // sleep for half a second */
+    /*         init(); */
+    /*     } */
+    /*     else */
+    /*     { */
+    /*         ROS_WARN("Pylon camera returned invalid image! Skipping"); */
+    /*     } */
+    /*     return false; */
+    /* } */
 
+    static bool black = true;
+    static cv::Mat img = cv::Mat::zeros(500, 500, CV_8UC3);
+    if (black)
+    {
+        img.setTo(cv::Vec3b(0,0,0));
+    } else
+    {
+        img.setTo(cv::Vec3b(255,255,255));
+    }
+    black = !black;
+
+    auto new_msg = cv_bridge::CvImage(
+        std_msgs::Header(),
+        "bgr8",
+        img
+    ).toImageMsg();
+    img_raw_msg_ = *new_msg;
     img_raw_msg_.header.stamp = ros::Time::now();
 
-    if ( camera_info_manager_->isCalibrated() )
-    {
-        cv_bridge_img_rect_->header.stamp = img_raw_msg_.header.stamp;
-        assert(pinhole_model_->initialized());
-        cv_bridge::CvImagePtr cv_img_raw = cv_bridge::toCvCopy(
-                                                        img_raw_msg_,
-                                                        img_raw_msg_.encoding);
-        pinhole_model_->fromCameraInfo(camera_info_manager_->getCameraInfo());
-        pinhole_model_->rectifyImage(cv_img_raw->image, cv_bridge_img_rect_->image);
-    }
+    /* if ( camera_info_manager_->isCalibrated() ) */
+    /* { */
+    /*     cv_bridge_img_rect_->header.stamp = img_raw_msg_.header.stamp; */
+    /*     assert(pinhole_model_->initialized()); */
+    /*     cv_bridge::CvImagePtr cv_img_raw = cv_bridge::toCvCopy( */
+    /*                                                     img_raw_msg_, */
+    /*                                                     img_raw_msg_.encoding); */
+    /*     pinhole_model_->fromCameraInfo(camera_info_manager_->getCameraInfo()); */
+    /*     pinhole_model_->rectifyImage(cv_img_raw->image, cv_bridge_img_rect_->image); */
+    /* } */
     return true;
 }
 
