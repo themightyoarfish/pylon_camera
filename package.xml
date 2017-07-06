@@ -48,4 +48,11 @@
   <run_depend>sensor_msgs</run_depend>
   <!--run_depend>std_srvs</run_depend-->
 
+  <!-- For nodelet -->
+  <build_depend>nodelet</build_depend>
+  <run_depend>nodelet</run_depend>
+  <export>
+      <nodelet plugin="${prefix}/nodelet_plugins.xml" />
+  </export>
+
 </package>

@@ -16,6 +16,7 @@ set(
      roslaunch
      sensor_msgs
      #std_srvs
+     nodelet
 )
 
 find_package(Pylon QUIET)
@@ -32,11 +33,13 @@ find_package(
 
 catkin_package(
     INCLUDE_DIRS
-     include
+    include
     LIBRARIES
-     ${PROJECT_NAME}
+    ${PROJECT_NAME}
     CATKIN_DEPENDS
-     ${CATKIN_COMPONENTS}
+    ${CATKIN_COMPONENTS}
+    dynamic_reconfigure
+    roscpp
 )
 
 set(
@@ -72,6 +75,7 @@ include_directories(
     ${Pylon_INCLUDE_DIRS}
 )
 
+
 # Add library
 add_library(
     ${PROJECT_NAME}
@@ -87,6 +91,14 @@ target_link_libraries(
      ${catkin_LIBRARIES}
      ${Pylon_LIBRARIES}
 )
+
+add_library(
+    PylonNodelet
+    src/PylonNodelet.cpp
+)
+
+set_property(TARGET PylonNodelet PROPERTY CXX_STANDARD 11)
+
 
 add_dependencies(
     ${PROJECT_NAME}
@@ -104,6 +116,13 @@ target_link_libraries(
     ${PROJECT_NAME}_node
      ${PROJECT_NAME}
 )
+
+target_link_libraries(
+    PylonNodelet
+    ${catkin_LIBRARIES}
+    ${Pylon_LIBRARIES}
+)
+
 
 add_executable(
     write_device_user_id_to_camera
