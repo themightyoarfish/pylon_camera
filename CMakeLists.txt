@@ -94,11 +94,14 @@ target_link_libraries(
 
 add_library(
     PylonNodelet
-    src/PylonNodelet.cpp
+    src/${PROJECT_NAME}/PylonNodelet.cpp
 )
 
 set_property(TARGET PylonNodelet PROPERTY CXX_STANDARD 11)
 
+add_dependencies(
+    PylonNodelet ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS}
+)
 
 add_dependencies(
     ${PROJECT_NAME}
@@ -121,6 +124,7 @@ target_link_libraries(
     PylonNodelet
     ${catkin_LIBRARIES}
     ${Pylon_LIBRARIES}
+    ${PROJECT_NAME}
 )
 
 
