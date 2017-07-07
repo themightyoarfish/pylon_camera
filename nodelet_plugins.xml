@@ -1,7 +1,0 @@
-<library path="lib/libPanoramaPylonNodelet">
-  <class name="PylonNodelet" type="PylonNodelet" base_class_type="nodelet::Nodelet">
-  <description>
-      Nodelet for the Pylon camera
-  </description>
-</library>
-
