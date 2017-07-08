@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 
     pylon_camera::PylonCameraNode pylon_camera_node;
 
-    ros::Rate r(30);
+    ros::Rate r(pylon_camera_node.frameRate());
 
     ROS_INFO_STREAM("Start image grabbing if node connects to topic with "
         << "a frame_rate of: " << pylon_camera_node.frameRate() << " Hz");
