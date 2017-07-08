@@ -338,7 +338,7 @@ protected:
     GrabImagesAS grab_imgs_raw_as_;
     GrabImagesAS* grab_imgs_rect_as_;
 
-    sensor_msgs::Image img_raw_msg_;
+    sensor_msgs::ImagePtr img_raw_msg_;
     cv_bridge::CvImage* cv_bridge_img_rect_;
 
     camera_info_manager::CameraInfoManager* camera_info_manager_;
