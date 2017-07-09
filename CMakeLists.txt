@@ -29,6 +29,15 @@ find_package(
      ${CATKIN_COMPONENTS}
      #std_srvs
      roslint
+     roscpp
+     rospy
+     dynamic_reconfigure
+)
+
+catkin_python_setup()
+
+generate_dynamic_reconfigure_options(
+  cfg/Pylon.cfg
 )
 
 catkin_package(
@@ -140,10 +149,10 @@ target_link_libraries(
 
 add_dependencies(
     ${PROJECT_NAME}_node
-     ${catkin_EXPORTED_TARGETS}
+    ${catkin_EXPORTED_TARGETS}
+    ${${PROJECT_NAME}_EXPORTED_TARGETS}
+    ${PROJECT_NAME}_gencfg
 )
-
-catkin_python_setup()
 
 install(
     DIRECTORY
