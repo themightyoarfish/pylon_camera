@@ -36,7 +36,8 @@ namespace pylon_camera
 PylonCameraParameter::PylonCameraParameter() :
         camera_frame_("pylon_camera"),
         device_user_id_(""),
-        frame_rate_(5.0),
+        // frame rate must be set once at start
+        frame_rate_(100),
         camera_info_url_(""),
         image_encoding_(""),
         binning_x_(1),
@@ -47,9 +48,9 @@ PylonCameraParameter::PylonCameraParameter() :
         // ##########################
         //  image intensity settings
         // ##########################
-        exposure_(10000.0),
+        exposure_(3000.0),
         exposure_given_(false),
-        gain_(0.5),
+        gain_(0.0),
         gain_given_(false),
         gamma_(1.0),
         gamma_given_(false),

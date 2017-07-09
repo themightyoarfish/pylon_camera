@@ -31,7 +31,9 @@ camera_info_url: ""
 #  The desired publisher frame rate if listening to the topics.
 #  This paramter can only be set once at startup
 #  Calling the GrabImages-Action can result in a higher framerate
-frame_rate: 5.0
+#  Addition 3.5.2017: if exposure time is incompatible with the desired
+#  framerate, the frame rate will be lowered accordingly
+frame_rate: 20.0
 
 ##########################################################################
 ######################## Image Intensity Settings ########################
@@ -42,7 +44,7 @@ frame_rate: 5.0
 ##########################################################################
 
 #  The exposure time in microseconds to be set after opening the camera.
-# exposure: 10000.0
+#exposure: 50000.0
 
 #  The target gain in percent of the maximal value the camera supports
 #  For USB-Cameras, the gain is in dB, for GigE-Cameras it is given in so
@@ -85,19 +87,14 @@ frame_rate: 5.0
 #  reached by adapting the exposure time.
 #  The gain_auto flag indicates, that the desired brightness will be
 #  reached by adapting the gain.
-# exposure_auto: true
-# gain_auto: true
+exposure_auto: false
+gain_auto: true
 
 ##########################################################################
 
 #  The timeout while searching the exposure which is connected to the
 #  desired brightness. For slow system this has to be increased.
 # exposure_search_timeout: 5.0
-
-#  The exposure search can be limited with an upper bound. This is to prevent
-#  very high exposure times and resulting timeouts.
-#  A typical value for this upper bound is ~2000000us.
-# auto_exposure_upper_limit: 2000000.0
 
 #  The MTU size. Only used for GigE cameras.
 #  To prevent lost frames configure the camera has to be configured
