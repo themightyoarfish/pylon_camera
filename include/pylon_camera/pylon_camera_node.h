@@ -56,6 +56,9 @@
 #include <camera_control_msgs/SetSleeping.h>
 #include <camera_control_msgs/GrabImagesAction.h>
 
+#include <mutex>
+#include <deque>
+
 namespace pylon_camera
 {
 
@@ -93,6 +96,8 @@ public:
      * @return the camera frame.
      */
     const std::string& cameraFrame() const;
+
+    std::vector<sensor_msgs::Image> getImageBuffer();
 
 protected:
     /**
@@ -360,6 +365,8 @@ protected:
     dynamic_reconfigure::Server<pylon_camera::PylonConfig> dyn_reconf_server;
     dynamic_reconfigure::Server<pylon_camera::PylonConfig>::CallbackType f;
 
+    std::deque<sensor_msgs::Image> image_buffer;
+    std::recursive_mutex image_buffer_mutex;
 };
 
 }  // namespace pylon_camera
