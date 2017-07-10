@@ -366,7 +366,7 @@ protected:
     dynamic_reconfigure::Server<pylon_camera::PylonConfig>::CallbackType f;
 
     std::deque<sensor_msgs::Image> image_buffer;
-    std::recursive_mutex image_buffer_mutex;
+    std::mutex image_buffer_mutex;
 };
 
 }  // namespace pylon_camera

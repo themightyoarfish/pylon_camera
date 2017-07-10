@@ -34,6 +34,7 @@
 #include <vector>
 #include "boost/multi_array.hpp"
 #include <opencv2/core.hpp>
+#include <signal.h>
 
 namespace pylon_camera
 {
@@ -134,6 +135,15 @@ void PylonCameraNode::reconfigureConfigCallback(pylon_camera::PylonConfig &confi
 
 void PylonCameraNode::init()
 {
+    // when the node is killed, we should save all our images somewhere
+    signal(SIGINT, [](int signum)
+            {
+                std::vector<sensor_msgs::Image> images = pylon_camera_node.getImageBuffer();
+                // TODO: Serialize this
+            }
+    );
+
+
     // reading all necessary parameter to open the desired camera from the
     // ros-parameter-server. In case that invalid parameter values can be
     // detected, the interface will reset them to the default values.
@@ -479,9 +489,8 @@ void PylonCameraNode::spin()
 
 std::vector<sensor_msgs::Image> PylonCameraNode::getImageBuffer()
 {
-    image_buffer_mutex.lock();
+    std::lock_guard<std::mutex> lock(image_buffer_mutex);
     std::vector<sensor_msgs::Image> ret(image_buffer.begin(), image_buffer.end());
-    image_buffer_mutex.unlock();
     return ret;
 }
 
