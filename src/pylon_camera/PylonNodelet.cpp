@@ -5,7 +5,6 @@
 #include <cv_bridge/cv_bridge.h>
 #include <boost/thread.hpp>
 #include <pylon_camera/pylon_camera_node.h>
-#include <boost/bind.hpp>
 
 namespace pylon_camera
 {
@@ -13,11 +12,12 @@ namespace pylon_camera
     {
         private:
             PylonCameraNode pylon_camera_node;
+            boost::thread th;
 
             void spinPylon()
             {
                 // poll the camera infinitely
-                ros::Rate rate(30);
+                ros::Rate rate(pylon_camera_node.frameRate());
                 while (ros::ok())
                 {
                     pylon_camera_node.spin();
@@ -32,7 +32,7 @@ namespace pylon_camera
                         << "a frame_rate of: " << pylon_camera_node.frameRate() << " Hz");
 
                 // Main thread and brightness-service thread
-                boost::thread th(boost::bind(&PylonNodelet::spinPylon, this));
+                th = boost::thread(boost::bind(&PylonNodelet::spinPylon, this));
             }
 
     };
