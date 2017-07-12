@@ -35,19 +35,12 @@
 #include "boost/multi_array.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
-#include <signal.h>
 
 namespace pylon_camera
 {
 
 using sensor_msgs::CameraInfo;
 using sensor_msgs::CameraInfoPtr;
-
-static boost::shared_ptr<PylonCameraNode> signal_receiver;
-static void receiveSignal(int signum)
-{
-    signal_receiver->handleSignal(signum);
-}
 
 PylonCameraNode::PylonCameraNode()
     : nh_("~"),
@@ -91,7 +84,8 @@ PylonCameraNode::PylonCameraNode()
       is_sleeping_(false),
       dyn_reconf_server(nh_),
       config_initialized_(true),
-      image_buffer_size(1000)
+      image_buffer_size(1000),
+      as(nh_, "pylon_camera", boost::bind(&PylonCameraNode::saveImageBuffer, this, _1), false)
 {
     init();
 }
@@ -141,10 +135,10 @@ void PylonCameraNode::reconfigureConfigCallback(pylon_camera::PylonConfig &confi
     current_config_ = config;
 }
 
-void PylonCameraNode::handleSignal(int signum)
+void PylonCameraNode::saveImageBuffer(const hyperspectral_msgs::DumpImagesGoalConstPtr& goal)
 {
-    ROS_INFO_STREAM("Writing all captured images.");
     const int N = image_buffer.size();
+    ROS_INFO_STREAM("Writing all " << N << " captured images.");
     const std::string base_path = "spectral_dump/";
     for (int i = 0; i < N; ++i)
     {
@@ -158,8 +152,9 @@ void PylonCameraNode::handleSignal(int signum)
 
 void PylonCameraNode::init()
 {
-    // set global handler object to this
-    signal(SIGKILL, pylon_camera::receiveSignal);
+
+    ROS_INFO("Starting Action server...");
+    as.start();
 
     // reading all necessary parameter to open the desired camera from the
     // ros-parameter-server. In case that invalid parameter values can be

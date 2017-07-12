@@ -56,6 +56,9 @@
 #include <camera_control_msgs/SetSleeping.h>
 #include <camera_control_msgs/GrabImagesAction.h>
 
+#include <actionlib/server/simple_action_server.h>
+#include <hyperspectral_msgs/DumpImagesAction.h>
+
 #include <mutex>
 #include <deque>
 
@@ -63,6 +66,7 @@ namespace pylon_camera
 {
 
 typedef actionlib::SimpleActionServer<camera_control_msgs::GrabImagesAction> GrabImagesAS;
+typedef actionlib::SimpleActionServer<hyperspectral_msgs::DumpImagesAction> ActionServer;
 
 /**
  * The ROS-node of the pylon_camera interface
@@ -99,11 +103,8 @@ public:
 
     std::vector<sensor_msgs::Image> getImageBuffer();
 
-    /**
-     * @brief Signal handler
-     * @param signum The signal number (see signal.h)
-     */
-    virtual void handleSignal(int signum);
+    void saveImageBuffer(const hyperspectral_msgs::DumpImagesGoalConstPtr& goal);
+
 protected:
 
     /**
@@ -374,6 +375,8 @@ protected:
     std::deque<sensor_msgs::Image> image_buffer;
     int image_buffer_size;
     std::mutex image_buffer_mutex;
+
+    ActionServer as;
 };
 
 }  // namespace pylon_camera

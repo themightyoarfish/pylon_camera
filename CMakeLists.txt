@@ -15,7 +15,7 @@ set(
      roscpp
      roslaunch
      sensor_msgs
-     #std_srvs
+     hyperspectral_msgs
      nodelet
 )
 

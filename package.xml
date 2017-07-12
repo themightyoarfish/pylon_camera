@@ -50,7 +50,12 @@
   <run_depend>rospy</run_depend>
   <run_depend>sensor_msgs</run_depend>
   <run_depend>roslaunch</run_depend>
-  <!--run_depend>std_srvs</run_depend-->
+
+  <!--   Action server -->
+  <build_depend>actionlib</build_depend>
+  <build_depend>hyperspectral_msgs</build_depend>
+  <run_depend>actionlib</run_depend>
+  <run_depend>hyperspectral_msgs</run_depend>
 
   <!-- For nodelet -->
   <build_depend>nodelet</build_depend>
