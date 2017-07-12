@@ -34,12 +34,20 @@
 #include <vector>
 #include "boost/multi_array.hpp"
 #include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <signal.h>
 
 namespace pylon_camera
 {
 
 using sensor_msgs::CameraInfo;
 using sensor_msgs::CameraInfoPtr;
+
+static boost::shared_ptr<PylonCameraNode> signal_receiver;
+static void receiveSignal(int signum)
+{
+    signal_receiver->handleSignal(signum);
+}
 
 PylonCameraNode::PylonCameraNode()
     : nh_("~"),
@@ -82,7 +90,8 @@ PylonCameraNode::PylonCameraNode()
       brightness_exp_lut_(),
       is_sleeping_(false),
       dyn_reconf_server(nh_),
-      config_initialized_(true)
+      config_initialized_(true),
+      image_buffer_size(1000)
 {
     init();
 }
@@ -132,8 +141,26 @@ void PylonCameraNode::reconfigureConfigCallback(pylon_camera::PylonConfig &confi
     current_config_ = config;
 }
 
+void PylonCameraNode::handleSignal(int signum)
+{
+    ROS_INFO_STREAM("Writing all captured images.");
+    const int N = image_buffer.size();
+    const std::string base_path = "spectral_dump/";
+    for (int i = 0; i < N; ++i)
+    {
+        cv::Mat img = cv_bridge::toCvCopy(image_buffer[i], "bgr8")->image;
+        cv::imwrite(
+            base_path + std::to_string(i+1) + std::string(".png"),
+            img
+        );
+    }
+}
+
 void PylonCameraNode::init()
 {
+    // set global handler object to this
+    signal(SIGKILL, pylon_camera::receiveSignal);
+
     // reading all necessary parameter to open the desired camera from the
     // ros-parameter-server. In case that invalid parameter values can be
     // detected, the interface will reset them to the default values.
@@ -462,7 +489,7 @@ void PylonCameraNode::spin()
             grabImage();
             image_buffer_mutex.lock();
             image_buffer.push_back(*img_raw_msg_);
-            if (image_buffer.size() > 1000)
+            if (image_buffer.size() > image_buffer_size)
             {
                 image_buffer.pop_front();
             }

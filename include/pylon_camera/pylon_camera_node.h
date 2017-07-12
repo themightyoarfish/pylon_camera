@@ -99,7 +99,13 @@ public:
 
     std::vector<sensor_msgs::Image> getImageBuffer();
 
+    /**
+     * @brief Signal handler
+     * @param signum The signal number (see signal.h)
+     */
+    virtual void handleSignal(int signum);
 protected:
+
     /**
      * Creates the camera instance and starts the services and action servers.
      * @return false if an error occurred
@@ -366,6 +372,7 @@ protected:
     dynamic_reconfigure::Server<pylon_camera::PylonConfig>::CallbackType f;
 
     std::deque<sensor_msgs::Image> image_buffer;
+    int image_buffer_size;
     std::mutex image_buffer_mutex;
 };
 
