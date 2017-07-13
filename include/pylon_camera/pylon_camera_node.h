@@ -58,6 +58,7 @@
 
 #include <actionlib/server/simple_action_server.h>
 #include <hyperspectral_msgs/DumpImagesAction.h>
+#include <hyperspectral_msgs/RecordImagesAction.h>
 
 #include <mutex>
 #include <deque>
@@ -66,7 +67,8 @@ namespace pylon_camera
 {
 
 typedef actionlib::SimpleActionServer<camera_control_msgs::GrabImagesAction> GrabImagesAS;
-typedef actionlib::SimpleActionServer<hyperspectral_msgs::DumpImagesAction> ActionServer;
+typedef actionlib::SimpleActionServer<hyperspectral_msgs::DumpImagesAction> DumpActionServer;
+typedef actionlib::SimpleActionServer<hyperspectral_msgs::RecordImagesAction> RecordImagesActionServer;
 
 /**
  * The ROS-node of the pylon_camera interface
@@ -104,6 +106,8 @@ public:
     std::vector<sensor_msgs::Image> getImageBuffer();
 
     void saveImageBuffer(const hyperspectral_msgs::DumpImagesGoalConstPtr& goal);
+
+    void bufferImages(const hyperspectral_msgs::RecordImagesGoalConstPtr& goal);
 
 protected:
 
@@ -376,7 +380,10 @@ protected:
     int image_buffer_size;
     std::mutex image_buffer_mutex;
 
-    ActionServer as;
+    DumpActionServer dump_as;
+    RecordImagesActionServer record_as;
+
+    bool should_record;
 };
 
 }  // namespace pylon_camera

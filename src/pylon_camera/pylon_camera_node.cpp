@@ -83,8 +83,11 @@ PylonCameraNode::PylonCameraNode()
       brightness_exp_lut_(),
       is_sleeping_(false),
       dyn_reconf_server(nh_),
-      config_initialized_(true), image_buffer_size(1000),
-      as(ros::NodeHandle("/"), "save_image_buffer", boost::bind(&PylonCameraNode::saveImageBuffer, this, _1), false)
+      config_initialized_(true),
+      image_buffer_size(1000),
+      dump_as(ros::NodeHandle("/"), "save_image_buffer", boost::bind(&PylonCameraNode::saveImageBuffer, this, _1), false),
+      record_as(ros::NodeHandle("/"), "buffer_images", boost::bind(&PylonCameraNode::bufferImages, this, _1), false),
+      should_record(false)
 {
     init();
 }
@@ -134,11 +137,28 @@ void PylonCameraNode::reconfigureConfigCallback(pylon_camera::PylonConfig &confi
     current_config_ = config;
 }
 
+void PylonCameraNode::bufferImages(const hyperspectral_msgs::RecordImagesGoalConstPtr& goal)
+{
+    bool should_record = should_record;
+    bool shall_record = goal->should_record;
+    if (!shall_record || image_buffer_size != goal->buffer_size)
+    {
+        image_buffer.clear();
+    }
+    if (shall_record && !should_record)
+    {
+        image_buffer_size = goal->buffer_size;
+    }
+    this->should_record = shall_record;
+    record_as.setSucceeded();
+}
+
 void PylonCameraNode::saveImageBuffer(const hyperspectral_msgs::DumpImagesGoalConstPtr& goal)
 {
+    std::vector<sensor_msgs::Image> image_buffer = getImageBuffer();
     const int N = image_buffer.size();
-    ROS_INFO_STREAM("Writing all " << N << " captured images.");
-    const std::string base_path = "spectral_dump/";
+    const std::string base_path = goal->base_path;
+    ROS_INFO_STREAM("Writing all " << N << " captured images to " << base_path);
     for (int i = 0; i < N; ++i)
     {
         cv::Mat img = cv_bridge::toCvCopy(image_buffer[i], "bgr8")->image;
@@ -148,9 +168,9 @@ void PylonCameraNode::saveImageBuffer(const hyperspectral_msgs::DumpImagesGoalCo
         );
         hyperspectral_msgs::DumpImagesFeedback feedback;
         feedback.progress = ((float)i)/N;
-        as.publishFeedback(feedback);
+        dump_as.publishFeedback(feedback);
     }
-    as.setSucceeded();
+    dump_as.setSucceeded();
     ROS_INFO_STREAM("Done.");
 }
 
@@ -158,7 +178,8 @@ void PylonCameraNode::init()
 {
 
     ROS_INFO("Starting Action server...");
-    as.start();
+    dump_as.start();
+    record_as.start();
 
     // reading all necessary parameter to open the desired camera from the
     // ros-parameter-server. In case that invalid parameter values can be
@@ -486,14 +507,17 @@ void PylonCameraNode::spin()
 
             // Publish via image_transport
             grabImage();
-            image_buffer_mutex.lock();
-            image_buffer.push_back(*img_raw_msg_);
-            if (image_buffer.size() > image_buffer_size)
-            {
-                image_buffer.pop_front();
-            }
-            image_buffer_mutex.unlock();
             img_raw_pub_.publish(img_raw_msg_, sensor_msgs::CameraInfoPtr(new sensor_msgs::CameraInfo()));
+            if (should_record)
+            {
+                image_buffer_mutex.lock();
+                image_buffer.push_back(*img_raw_msg_);
+                if (image_buffer.size() > image_buffer_size)
+                {
+                    image_buffer.pop_front();
+                }
+                image_buffer_mutex.unlock();
+            }
         }
 
         if ( getNumSubscribersRect() > 0 )
