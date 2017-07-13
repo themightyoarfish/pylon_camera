@@ -144,13 +144,14 @@ void PylonCameraNode::saveImageBuffer(const hyperspectral_msgs::DumpImagesGoalCo
         cv::Mat img = cv_bridge::toCvCopy(image_buffer[i], "bgr8")->image;
         cv::imwrite(
             base_path + std::to_string(i+1) + std::string(".png"),
-            im
+            img
         );
         hyperspectral_msgs::DumpImagesFeedback feedback;
         feedback.progress = ((float)i)/N;
         as.publishFeedback(feedback);
     }
     as.setSucceeded();
+    ROS_INFO_STREAM("Done.");
 }
 
 void PylonCameraNode::init()
