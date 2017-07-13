@@ -83,9 +83,8 @@ PylonCameraNode::PylonCameraNode()
       brightness_exp_lut_(),
       is_sleeping_(false),
       dyn_reconf_server(nh_),
-      config_initialized_(true),
-      image_buffer_size(1000),
-      as(nh_, "pylon_camera", boost::bind(&PylonCameraNode::saveImageBuffer, this, _1), false)
+      config_initialized_(true), image_buffer_size(1000),
+      as(ros::NodeHandle("/"), "save_image_buffer", boost::bind(&PylonCameraNode::saveImageBuffer, this, _1), false)
 {
     init();
 }
@@ -145,9 +144,13 @@ void PylonCameraNode::saveImageBuffer(const hyperspectral_msgs::DumpImagesGoalCo
         cv::Mat img = cv_bridge::toCvCopy(image_buffer[i], "bgr8")->image;
         cv::imwrite(
             base_path + std::to_string(i+1) + std::string(".png"),
-            img
+            im
         );
+        hyperspectral_msgs::DumpImagesFeedback feedback;
+        feedback.progress = ((float)i)/N;
+        as.publishFeedback(feedback);
     }
+    as.setSucceeded();
 }
 
 void PylonCameraNode::init()
