@@ -31,14 +31,9 @@ find_package(
      roslint
      roscpp
      rospy
-     dynamic_reconfigure
 )
 
 catkin_python_setup()
-
-generate_dynamic_reconfigure_options(
-  cfg/Pylon.cfg
-)
 
 catkin_package(
     INCLUDE_DIRS
@@ -47,7 +42,6 @@ catkin_package(
     ${PROJECT_NAME}
     CATKIN_DEPENDS
     ${CATKIN_COMPONENTS}
-    dynamic_reconfigure
     roscpp
 )
 

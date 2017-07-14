@@ -83,59 +83,12 @@ PylonCameraNode::PylonCameraNode()
       sampling_indices_(),
       brightness_exp_lut_(),
       is_sleeping_(false),
-      dyn_reconf_server(nh_),
-      config_initialized_(true),
       image_buffer_size(1000),
       dump_as(ros::NodeHandle("/"), "save_image_buffer", boost::bind(&PylonCameraNode::saveImageBuffer, this, _1), false),
       record_as(ros::NodeHandle("/"), "buffer_images", boost::bind(&PylonCameraNode::bufferImages, this, _1), false),
       should_record(false)
 {
     init();
-}
-
-/*
- dynamic reconfigure callback function
-*/
-void PylonCameraNode::reconfigureConfigCallback(pylon_camera::PylonConfig &config, uint32_t level)
-{
-
-    if(!config_initialized_){
-	config_initialized_ = true;
-	current_config_ = config;
-	return;
-    }
-
-    // info log
-    double frame_rate_ = frameRate();
-    ROS_INFO("frame rate: %f", frame_rate_);
-    ROS_INFO("level parameter: %d", level);
-
-    // bit mask order 1,2,4,8,16,32,64,...
-    if(level & 1){
-        ROS_INFO("Reconfigure Request, exposure: %f", config.exposure_);
-	float target_exposure_ = config.exposure_;
-	float reached_exposure_;
-	bool try_set_exposure_ = setExposure(target_exposure_, reached_exposure_);
-	ROS_INFO("Target exposure: %f ,Reached exposure: %f", target_exposure_, reached_exposure_);
-    }
-
-    if(level & 2) {
-	ROS_INFO("Reconfigure Request, gain: %f", config.gain_);
-	float target_gain_ = config.gain_;
-	float reached_gain_;
-	bool try_set_gain_ = setGain(target_gain_, reached_gain_);
-	ROS_INFO("Target gain: %f ,Reached gain: %f", target_gain_, reached_gain_);
-    }
-
-    if(level & 4){
-	float target_gamma_ = config.gamma_;
-	ROS_INFO("Reconfigure Request, gamma: %f", target_gamma_);
-	float reached_gamma_;
-	bool try_set_gamma_ = setGamma(target_gamma_, reached_gamma_);
-	ROS_INFO("Target gamma: %f ,Reached gamma: %f", target_gamma_, reached_gamma_);
-    }
-
-    current_config_ = config;
 }
 
 void PylonCameraNode::bufferImages(const hyperspectral_msgs::RecordImagesGoalConstPtr& goal)
@@ -228,10 +181,6 @@ void PylonCameraNode::init()
         ros::shutdown();
         return;
     }
-
-    // build reconfigure server
-    f = boost::bind(&PylonCameraNode::reconfigureConfigCallback, this, _1, _2);
-    dyn_reconf_server.setCallback(f);
 }
 
 bool PylonCameraNode::initAndRegister()

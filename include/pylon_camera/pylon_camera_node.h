@@ -41,8 +41,6 @@
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/image_encodings.h>
 
-#include <dynamic_reconfigure/server.h>
-#include <pylon_camera/PylonConfig.h>
 
 #include <pylon_camera/pylon_camera_parameter.h>
 #include <pylon_camera/pylon_camera.h>
@@ -336,11 +334,6 @@ protected:
      */
     bool waitForCamera(const ros::Duration& timeout) const;
 
-    void reconfigureConfigCallback(pylon_camera::PylonConfig &config, uint32_t level);
-
-    PylonConfig current_config_;
-    bool config_initialized_;
-
     ros::NodeHandle nh_;
     PylonCameraParameter pylon_camera_parameter_set_;
     ros::ServiceServer set_binning_srv_;
@@ -372,9 +365,6 @@ protected:
 
     bool is_sleeping_;
     boost::recursive_mutex grab_mutex_;
-
-    dynamic_reconfigure::Server<pylon_camera::PylonConfig> dyn_reconf_server;
-    dynamic_reconfigure::Server<pylon_camera::PylonConfig>::CallbackType f;
 
     std::deque<sensor_msgs::Image> image_buffer;
     int image_buffer_size;
