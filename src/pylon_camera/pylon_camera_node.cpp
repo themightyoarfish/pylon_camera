@@ -35,6 +35,7 @@
 #include "boost/multi_array.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
+#include <fstream>
 
 namespace pylon_camera
 {
@@ -144,10 +145,12 @@ void PylonCameraNode::bufferImages(const hyperspectral_msgs::RecordImagesGoalCon
     if (!shall_record || image_buffer_size != goal->buffer_size)
     {
         image_buffer.clear();
+        ROS_INFO_STREAM("Cleared image buffer.");
     }
     if (shall_record && !should_record)
     {
         image_buffer_size = goal->buffer_size;
+        ROS_INFO_STREAM("Updated image buffer size.");
     }
     this->should_record = shall_record;
     record_as.setSucceeded();
@@ -158,20 +161,42 @@ void PylonCameraNode::saveImageBuffer(const hyperspectral_msgs::DumpImagesGoalCo
     std::vector<sensor_msgs::Image> image_buffer = getImageBuffer();
     const int N = image_buffer.size();
     const std::string base_path = goal->base_path;
+    hyperspectral_msgs::DumpImagesFeedback feedback;
     ROS_INFO_STREAM("Writing all " << N << " captured images to " << base_path);
+    system((std::string("exec rm -r " )+ base_path + std::string("*")).c_str());
+    ROS_INFO_STREAM("Removed all old files.");
     for (int i = 0; i < N; ++i)
     {
+        double time = image_buffer[i].header.stamp.toSec();
         cv::Mat img = cv_bridge::toCvCopy(image_buffer[i], "bgr8")->image;
-        cv::imwrite(
-            base_path + std::to_string(i+1) + std::string(".png"),
+        std::string fname = base_path + std::to_string(i+1) + std::string(".png");
+        bool success = cv::imwrite(
+            fname,
             img
         );
-        hyperspectral_msgs::DumpImagesFeedback feedback;
-        feedback.progress = ((float)i)/N;
-        dump_as.publishFeedback(feedback);
+        if (!success)
+        {
+            ROS_ERROR_STREAM("Failed writing " << fname);
+            dump_as.setAborted();
+            return;
+        }
+        fname = base_path + std::to_string(i+1) + std::string(".time");
+        std::ofstream ofs(fname);
+        if (!ofs.is_open())
+        {
+            ROS_ERROR_STREAM("Could not save " << fname);
+            dump_as.setAborted();
+            return;
+        } else
+        {
+            ofs << std::setprecision(std::numeric_limits<double>::digits) << time;
+            ofs.close();
+            feedback.progress = ((float)i)/N;
+            dump_as.publishFeedback(feedback);
+        }
     }
     dump_as.setSucceeded();
-    ROS_INFO_STREAM("Done.");
+    ROS_INFO_STREAM("Done saving buffer.");
 }
 
 void PylonCameraNode::init()
