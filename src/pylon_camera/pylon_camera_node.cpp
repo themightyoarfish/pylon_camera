@@ -111,17 +111,24 @@ void PylonCameraNode::bufferImages(const hyperspectral_msgs::RecordImagesGoalCon
 
 void PylonCameraNode::saveImageBuffer(const hyperspectral_msgs::DumpImagesGoalConstPtr& goal)
 {
+    if (pylon_camera_->currentROSEncoding() != "mono8")
+    {
+        ROS_ERROR("Currently, image buffer requires mono8 encoding");
+        dump_as.setAborted();
+        return;
+    }
+
     std::vector<sensor_msgs::Image> image_buffer = getImageBuffer();
     const int N = image_buffer.size();
     const std::string base_path = goal->base_path;
     hyperspectral_msgs::DumpImagesFeedback feedback;
     ROS_INFO_STREAM("Writing all " << N << " captured images to " << base_path);
-    system((std::string("exec rm -r " )+ base_path + std::string("*")).c_str());
+    system((std::string("exec rm -r " ) + base_path + std::string("*")).c_str());
     ROS_INFO_STREAM("Removed all old files.");
     for (int i = 0; i < N; ++i)
     {
         double time = image_buffer[i].header.stamp.toSec();
-        cv::Mat img = cv_bridge::toCvCopy(image_buffer[i], "bgr8")->image;
+        cv::Mat img = cv_bridge::toCvCopy(image_buffer[i], pylon_camera_->currentROSEncoding())->image;
         std::string fname = base_path + std::to_string(i+1) + std::string(".png");
         bool success = cv::imwrite(
             fname,
