@@ -3,13 +3,24 @@
     <arg name="respawn" default="false" />
     <arg name="debug" default="false" />
     <arg name="node_name" default="pylon_camera_node" />
-    <arg name="config_file" default="$(find pylon_camera)/config/pluto_pylon.yaml" />
+    <arg name="outdoor" default="true" />
 
+    <!-- Maybe set gdb prefix. -->
     <arg unless="$(arg debug)" name="launch_prefix" value="" />
     <arg     if="$(arg debug)" name="launch_prefix" value="gdb -ex run --args" />
 
-    <node name="$(arg node_name)" pkg="pylon_camera" type="pylon_camera_node" output="screen"
-          respawn="$(arg respawn)" launch-prefix="$(arg launch_prefix)">
+    <!-- Set depending on outdoor Scenario or not -->
+    <arg unless="$(arg outdoor)" name="config_file" value="$(find pylon_camera)/config/pluto_pylon.yaml" />
+    <arg     if="$(arg outdoor)" name="config_file" value="$(find pylon_camera)/config/pluto_pylon_outdoor.yaml" />
+
+
+    <node
+        name="$(arg node_name)"
+        pkg="pylon_camera"
+        type="pylon_camera_node"
+        output="screen"
+        respawn="$(arg respawn)"
+        launch-prefix="$(arg launch_prefix)" >
 
         <param name="camera_frame" value="$(arg node_name)" type="string" />
         <rosparam command="load" file="$(arg config_file)" />
