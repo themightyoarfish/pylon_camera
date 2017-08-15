@@ -82,6 +82,13 @@ add_library(
      src/${PROJECT_NAME}/pylon_camera_parameter.cpp
 )
 
+add_library(
+    PylonNodelet
+    src/${PROJECT_NAME}/PylonNodelet.cpp
+)
+
+set_property(TARGET PylonNodelet PROPERTY CXX_STANDARD 11)
+
 target_link_libraries(
     ${PROJECT_NAME}
      ${catkin_LIBRARIES}
@@ -92,6 +99,10 @@ add_dependencies(
     ${PROJECT_NAME}
      ${catkin_EXPORTED_TARGETS}
      camera_control_msgs
+)
+
+add_dependencies(
+    PylonNodelet ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS}
 )
 
 # Add pylon_camera_node
@@ -113,6 +124,13 @@ add_executable(
 target_link_libraries(
     write_device_user_id_to_camera
      ${Pylon_LIBRARIES}
+)
+
+target_link_libraries(
+    PylonNodelet
+    ${catkin_LIBRARIES}
+    ${Pylon_LIBRARIES}
+    ${PROJECT_NAME}
 )
 
 add_dependencies(
