@@ -33,7 +33,7 @@ image_encoding: "mono8"
 #  Calling the GrabImages-Action can result in a higher framerate
 #  Addition 3.5.2017: if exposure time is incompatible with the desired
 #  framerate, the frame rate will be lowered accordingly
-frame_rate: 30.0
+frame_rate: 60.0
 
 ##########################################################################
 ######################## Image Intensity Settings ########################

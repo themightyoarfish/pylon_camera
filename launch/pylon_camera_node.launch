@@ -21,7 +21,6 @@
         output="screen"
         respawn="$(arg respawn)"
         launch-prefix="$(arg launch_prefix)" >
-
         <param name="camera_frame" value="$(arg node_name)" type="string" />
         <rosparam command="load" file="$(arg config_file)" />
     </node>
