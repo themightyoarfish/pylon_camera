@@ -26,7 +26,7 @@ image_encoding: "mono8"
 #  The default values binning_x = binning_y = 0 are considered the same
 #  as binning_x = binning_y = 1 (no subsampling).
 # binning_x: 2
-# binning_y: 2
+binning_y: &binning_y 1
 
 #  The desired publisher frame rate if listening to the topics.
 #  This paramter can only be set once at startup
@@ -109,3 +109,15 @@ gain_auto: false
 #  For cameras used on a RaspberryPI this value should be set to 11772.
 # gige:
 #  inter_pkg_delay: 1000
+
+
+### Added for hyperspectral_calibration usage
+# Wavelengths in nm
+spectral_peak_blue: 445
+spectral_peak_green: 535
+spectral_peak_red: 575
+spectral_channels: 600
+spectral_min: 400
+spectral_max: 1000
+spatial_height: 900
+binning: *binning_y
