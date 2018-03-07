@@ -1,5 +1,5 @@
 set(PYLON_ROOT $ENV{PYLON_ROOT})
-if (NOT "${PYLON_ROOT}")
+if (NOT DEFINED ENV{PYLON_ROOT})
     set(PYLON_ROOT "/opt/pylon5")
 endif()
 
@@ -21,6 +21,7 @@ if (EXISTS "${_PYLON_CONFIG}")
     string(REPLACE "-L" "" LIBDIRS_OUT "${LIBDIRS_OUT}")
     string(REPLACE "\n" "" LIBDIRS_OUT "${LIBDIRS_OUT}")
 
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
     foreach (LIBDIR ${LIBDIRS_OUT})
         link_directories(${LIBDIR})
     endforeach()
